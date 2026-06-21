@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import emailjs from '@emailjs/browser'
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' })
@@ -12,11 +13,30 @@ export default function Contact() {
   }, [])
 
   const sf = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
-  const submit = e => {
-    e.preventDefault()
-    if (!form.name || !form.email || !form.message) return
+ const submit = async (e) => {
+  e.preventDefault()
+
+  if (!form.name || !form.email || !form.message) return
+
+  try {
+    await emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+      {
+        from_name: form.name,
+        from_email: form.email,
+        message: form.message,
+      },
+      emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY)
+    )
+
     setSent(true)
+    setForm({ name: '', email: '', message: '' })
+  } catch (error) {
+    console.error('Email send failed:', error)
+    alert('Failed to send message. Try again.')
   }
+}
 
   return (
     <>
